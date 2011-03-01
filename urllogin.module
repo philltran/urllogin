@@ -1,0 +1,143 @@
+<?php
+// $Id: urllogin.module 135 2011-02-24 16:29:45Z andrew $
+/**
+ * @file
+ * Allows login using link from URL.
+ *
+ * @todo test if already logged in as someone else and abort
+ * @todo reduce duplication of test code
+ * @todo generate token for simplemail-tokens
+ */
+
+/**
+ * Returns the version information.
+ *
+ * @return
+ *  string containing module version/date/build info
+ *
+ */
+function urllogin_version() {
+  $info = drupal_parse_info_file(drupal_get_path('module', 'urllogin') . '/urllogin.info');
+  $build = explode(" ", "$Revision: 135 $");
+  $changedate = explode(" ", "$Date: 2011-02-24 11:29:45 -0500 (Thu, 24 Feb 2011) $");
+  return $info['version'] . ' (' . $build[1] . ') - ' . $changedate[1];
+}
+
+/**
+ * Returns the current passphrase.
+ *
+ * If urllogin_add_dbpass is set, then append the database access string
+ *
+ * @return
+ *   full passphrase for encryption
+ *
+ */
+function urllogin_passphrase() {
+  $passphrase = variable_get('urllogin_passphrase', 'passphrase');
+  if (variable_get('urllogin_add_dbpass', '0') != 0) {
+    global $db_url;
+    $passphrase .= $db_url;
+  }
+  return $passphrase;
+}
+
+/********************** Admin Functions **************************/
+/**
+ * Display help and module information
+ *
+ * @param path
+ *   which path of the site we're displaying help
+ *
+ * @param arg
+ *   array that holds the current path as would be returned from arg() function
+ *
+ * @return
+ *   help text for the path
+ */
+function urllogin_help($path, $arg) {
+  $output = ''; // declare output variable
+  switch ($path) {
+    case "admin/help#urllogin":
+      $output = '<p>' . t('Allow login using link from URL') . '</p>';
+      break;
+  }
+  return $output;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function urllogin_perm() {
+  return array(
+    'login via url',
+    'view test pages',
+    'administer URL login',
+    'download user access URLs',
+  );
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function urllogin_menu() {
+  $items = array();
+  $items['l'] = array(
+    'title' => 'Link to account',
+    'description' => 'Links a URL to an account',
+    'page callback' => 'urllogin_link_page',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+    'file' => 'urllogin.inc',
+  );
+  $items['l_test'] = array(
+    'title' => 'Test URL login',
+    'description' => 'Tests URL but does not log in',
+    'page callback' => 'urllogin_test_page',
+    'access callback' => 'user_access',
+    'access arguments' => array('view test pages'),
+    'type' => MENU_CALLBACK,
+    'file' => 'urllogin.inc',
+  );
+  $items['admin/settings/urllogin'] = array(
+    'title' => 'URL login settings',
+    'description' => 'Administer URL login',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('urllogin_admin_settings'),
+    'access arguments' => array('administer URL login'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'urllogin.inc',
+  );
+  $items['urllogin/status'] = array(
+    'title' => 'URL Login Status',
+    'description' => 'Report URL login status',
+    'page callback' => 'urllogin_status_page',
+    'access callback' => 'user_access',
+    'access arguments' => array('view test pages'),
+    'type' => MENU_CALLBACK,
+    'file' => 'urllogin.inc',
+  );
+  $items['urllogin/userlist.csv'] = array(
+    'title' => "download user access URL's",
+    'description' => "download user access URL's as a file of tab separated variables",
+    'page callback' => 'urllogin_userlist_page',
+    'access callback' => 'user_access',
+    'access arguments' => array('download user access URLs'),
+    'type' => MENU_CALLBACK,
+    'file' => 'urllogin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function urllogin_uninstall() {
+  // Remove variables.
+  variable_del('urllogin_add_dbpass');
+  variable_del('urllogin_passphrase');
+  variable_del('urllogin_codekey');
+  variable_del('urllogin_codemin');
+  variable_del('urllogin_destination');
+  variable_del('urllogin_useprofile');
+}
+

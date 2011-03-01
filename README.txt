@@ -1,4 +1,4 @@
-// $Id: README.txt 113 2011-02-23 22:54:06Z andrew $
+// $Id: read_me.txt 120 2011-02-24 03:24:18Z andrew $
 
 This module provides a way to transparently log a user into the web site when
 they follow a link. Every effort has been made to minimize the potential
@@ -60,7 +60,8 @@ DIFFERENCES FROM OTHER SIMILAR MODULES
 ======================================
 
 The most similar module is easylogin although the similarities are only
-superficial because easylogin has an entirely different use case:
+superficial because easylogin has an entirely different use case, as described
+below.
 
  _____________________________________________________________________________
 |            |URLLOGIN                       |EASYLOGIN                       |
@@ -92,6 +93,20 @@ superficial because easylogin has an entirely different use case:
 |            |                               | * no mass download of access   |
 |            |                               |   strings possible             |
 |____________|_______________________________|________________________________|
+Another similar module is One-time login links which is a very minimal utility
+module that simply re-creates the link that a user would get had they forgotten
+their password and needed to re-create it.
+
+ * This module has a very limited number of use cases because the landing page
+   is (of necessity) the user's account where they need to create a password.
+ * This limits the use of the module to those cases where users are willing to
+   create themselves a password as the first step to viewing the site.
+ * There is no way of expiring the links if the user has not logged in before.
+   They last indefinitely--a security risk.
+ * It is not suitable for sending in mass email because experience shows that
+   email recipients will often go back to the original email to re-gain access
+   to the site. Drupal's one-time link mechanism that this module utilizes will
+   not allow this behaviour.
 
 CONFIGURATION
 =============

@@ -1,8 +1,7 @@
-// $Id: read_me.txt 120 2011-02-24 03:24:18Z andrew $
-
-This module provides a way to transparently log a user into the web site when
-they follow a link. Every effort has been made to minimize the potential
-security risks.
+This module provides a way to transparently log users into the web site when
+they follow a link. The primary use is for mass email where users are send
+individualized URL's which take them to a page on the site, in a "logged in"
+state. Every effort has been made to minimize the potential security risks.
 
 
 USE CASE
@@ -50,7 +49,7 @@ FEATURES
     o Both users and spam detectors are suspicious of long URL's, so every
       effort has been make to keep the login link as short as possible
     o For this reason, the embedding login string is only 11 characters long.
-       - e.g. HTTP://example.com/l/zjIR0AeOzef/blog/myarticle
+       - e.g. http://example.com/l/zjIR0AeOzef/blog/myarticle
     o base64URL encoding has been used to avoid problems
     o The link can take the user directly to any page on the site for which
       they have permission
@@ -115,7 +114,12 @@ CONFIGURATION
    (/admin/settings/urllogin)
 2. Give the "login via URL" permission to users who are allowed to log in with
    this module
-3. Generate login strings (can be downloaded as a CSV file)
+3. Generate login strings (can be downloaded as a CSV file). Login strings are
+   in the form:
+    o http://example.com/l/11CHARSTRNG/my_blog_page where the '/l/' and the 11
+      character access string have been inserted into the URL.
+4. Before sending the URL to real people, it can be tested by using
+   '/l_test/' instead of '/l/' in the URL.
 
 POSSIBLE FUTURE DEVELOPMENT
 ===========================
@@ -126,8 +130,8 @@ SUPPORT
 =======
 
 If you experience a problem with urllogin or have a problem, file a request or
-issue on the urllogin queue at http://drupal.org/project/issues/urllogin. DO
-NOT POST IN THE FORUMS. Posting in the issue queues is a direct line of
+issue on the urllogin queue at http://drupal.org/project/issues/1076736. DO NOT
+POST IN THE FORUMS. Posting in the issue queues is a direct line of
 communication with the module authors.
 
 No guarantee is provided with this software, no matter how critical your

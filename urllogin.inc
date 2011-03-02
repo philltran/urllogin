@@ -1,5 +1,4 @@
 <?php
-// $Id: urllogin.inc 136 2011-02-24 16:32:34Z andrew $
 /**
  * @file
  * Include file for page callbacks.
@@ -109,7 +108,6 @@ function urllogin_status_page($testuid = 0) {
   $codekey = variable_get('urllogin_codekey', 0);
   $codemin = variable_get('urllogin_codemin', 0);
   $page = '<h2> ' . urllogin_help('admin/help#checkin', 0) . '</h2><ul>';
-  $page .= '<li>' . t('urllogin module version: ') . urllogin_version() . '</li>';
   $page .= '<li>' . t('Test UID: ') . $uid . '</li>';
   $page .= '<li>' . t('Passphrase: ') . $passkey . '</li>';
   $page .= '<li>' . t('Current Validation number: ') . $codekey . '</li>';
@@ -315,10 +313,10 @@ function urllogin_userlist_page() {
 
   // use a different SQL query depending on whether we are to get firstname from the profile
   if (variable_get('urllogin_useprofile', 0) == 0) {
-    $sql="SELECT u.uid, u.mail, u.name FROM `users` AS u
-            JOIN users_roles AS r ON r.uid = u.uid
-            JOIN permission AS p ON p.rid = r.rid
-            WHERE p.perm = 'login via url';";
+    $sql="SELECT u.uid, u.mail, u.name FROM {users} AS u
+            JOIN {users_roles} AS r ON r.uid = u.uid
+            JOIN {permission} AS p ON p.rid = r.rid
+            WHERE p.perm = 'login via url'";
     $result = db_query($sql);
     while ( $data = db_fetch_object($result) ) {
       $urlstr = $thissite . urllogin_encode($data->uid, $codekey, $passphrase) . $destination;
@@ -326,12 +324,12 @@ function urllogin_userlist_page() {
     }
   }
   else {
-    $sql="SELECT u.uid, u.mail, u.name, v.value FROM `users` AS u
-            JOIN users_roles AS r ON r.uid = u.uid
-            JOIN permission AS p ON p.rid = r.rid
-            JOIN profile_values AS v ON v.uid = u.uid
-            JOIN profile_fields AS f ON f.fid = v.fid
-            WHERE p.perm = 'login via url' AND f.name = 'profile_firstname';";
+    $sql="SELECT u.uid, u.mail, u.name, v.value FROM {users} AS u
+            JOIN {users_roles} AS r ON r.uid = u.uid
+            JOIN {permission} AS p ON p.rid = r.rid
+            JOIN {profile_values} AS v ON v.uid = u.uid
+            JOIN {profile_fields} AS f ON f.fid = v.fid
+            WHERE p.perm = 'login via url' AND f.name = 'profile_firstname'";
     $result = db_query($sql);
     while ( $data = db_fetch_object($result) ) {
       $urlstr = $thissite . urllogin_encode($data->uid, $codekey, $passphrase) . $destination;

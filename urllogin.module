@@ -1,5 +1,4 @@
 <?php
-// $Id: urllogin.module 135 2011-02-24 16:29:45Z andrew $
 /**
  * @file
  * Allows login using link from URL.
@@ -8,20 +7,6 @@
  * @todo reduce duplication of test code
  * @todo generate token for simplemail-tokens
  */
-
-/**
- * Returns the version information.
- *
- * @return
- *  string containing module version/date/build info
- *
- */
-function urllogin_version() {
-  $info = drupal_parse_info_file(drupal_get_path('module', 'urllogin') . '/urllogin.info');
-  $build = explode(" ", "$Revision: 135 $");
-  $changedate = explode(" ", "$Date: 2011-02-24 11:29:45 -0500 (Thu, 24 Feb 2011) $");
-  return $info['version'] . ' (' . $build[1] . ') - ' . $changedate[1];
-}
 
 /**
  * Returns the current passphrase.

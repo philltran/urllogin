@@ -1,5 +1,4 @@
 <?php
-// $Id: urllogin_security.inc 107 2011-02-16 23:45:32Z andrew $
 /**
  * @file
  * Include file for urllogin security functions.

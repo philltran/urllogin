@@ -68,8 +68,9 @@ function urllogin_admin_settings() {
   );
   $form['userlist']['urllogin_useprofile'] = array(
     '#type' => 'checkbox',
-    '#title' => t('use "firstname" field from profile when creating downloaded user list'),
-    '#description' => t('Requires the profile module and the creation of a field with the name: <em>profile_firstname</em>.'),
+    '#title' => t('use "firstname" and "lastname" fields from profile when creating downloaded user list'),
+    '#description' => t('Requires the profile module and the creation of fields with the exact names:
+       <em>profile_firstname, profile_lastname</em>.'),
     '#default_value' => variable_get('urllogin_useprofile', 0),
   );
   return system_settings_form($form);
@@ -297,45 +298,58 @@ function urllogin_link_page($urlstring = 'none') {
  * A theme template file is needed of the page-urllogin-userlist.csv.tpl
  * containing the single line: < ?php print $content; ? >
  *
- * @todo link this and the status page from the settings page using a block
- * @todo allow an input url for the string to be embedded into
- * @todo allow first and last names to be taken from the user profile
+ * @todo test whether profile module is installed and if fields are correct
+ * @todo look at integrating with content profile module
  *
  * @return
  *   Page containing user access URL's as a file of tab separated variables
  */
 function urllogin_userlist_page() {
-  $page = '';
   $codekey = variable_get('urllogin_codekey', 0);
   $passphrase = urllogin_passphrase();
   $thissite = url('l/', array('absolute' => TRUE));
   $destination = '/' . variable_get('urllogin_destination', '');
 
+  // tell browser this is not a web page but a file to download
+  drupal_set_header('Content-Type: text/csv; charset=utf-8');
+  drupal_set_header('Content-Disposition: inline; filename="userlist.csv"');
+
   // use a different SQL query depending on whether we are to get firstname from the profile
   if (variable_get('urllogin_useprofile', 0) == 0) {
-    $sql="SELECT u.uid, u.mail, u.name FROM {users} AS u
+    $sql="SELECT u.uid, u.mail, u.name
+            FROM {users} AS u
             JOIN {users_roles} AS r ON r.uid = u.uid
             JOIN {permission} AS p ON p.rid = r.rid
-            WHERE p.perm = 'login via url'";
+            WHERE p.perm = 'login via url'
+            ORDER BY name";
     $result = db_query($sql);
+    print t('UID') . "\t" . t('Name') . "\t" . t('Email') . "\t" . t('URL') . "\r\n";
     while ( $data = db_fetch_object($result) ) {
       $urlstr = $thissite . urllogin_encode($data->uid, $codekey, $passphrase) . $destination;
-      $page .= $data->uid . "\t" . $data->name . "\t" . $data->mail . "\t" . $urlstr . "\n";
+      print $data->uid . "\t" . $data->name . "\t" . $data->mail . "\t" . $urlstr . "\r\n";
     }
   }
   else {
-    $sql="SELECT u.uid, u.mail, u.name, v.value FROM {users} AS u
+    $sql="SELECT u.uid, u.mail, u.name, vf.value AS first, vl.value AS last
+            FROM {users} AS u
             JOIN {users_roles} AS r ON r.uid = u.uid
             JOIN {permission} AS p ON p.rid = r.rid
-            JOIN {profile_values} AS v ON v.uid = u.uid
-            JOIN {profile_fields} AS f ON f.fid = v.fid
-            WHERE p.perm = 'login via url' AND f.name = 'profile_firstname'";
+            JOIN {profile_values} AS vf ON vf.uid = u.uid
+            JOIN {profile_fields} AS f ON f.fid = vf.fid
+            JOIN {profile_values} AS vl ON vl.uid = u.uid
+            JOIN {profile_fields} AS l ON l.fid = vl.fid
+          WHERE p.perm = 'login via url'
+            AND f.name = 'profile_firstname'
+            AND l.name = 'profile_lastname'
+          ORDER BY last, first";
     $result = db_query($sql);
+    print t('UID') . "\t" . t('Name') . "\t" . t('First') . "\t" . t('Last')
+          . "\t" . t('Email') . "\t" . t('URL') . "\r\n";
     while ( $data = db_fetch_object($result) ) {
       $urlstr = $thissite . urllogin_encode($data->uid, $codekey, $passphrase) . $destination;
-      $page .= $data->uid . "\t" . $data->name . "\t" . $data->value . "\t" . $data->mail . "\t" . $urlstr . "\n";
+      print $data->uid . "\t" . $data->name . "\t" . $data->first . "\t" . $data->last
+          . "\t" . $data->mail . "\t" . $urlstr . "\r\n";
     }
   }
-  return check_plain($page);
 }
 

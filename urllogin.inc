@@ -40,14 +40,14 @@ function urllogin_admin_settings() {
     '#type' => 'textfield',
     '#title' => t('Validation number for generating new URL login strings'),
     '#description' => t('A value between 0 and 2,000,000,000. Suggestion: use current date in yyyymmdd format.'),
-    '#default_value' => variable_get('urllogin_codekey', 20101231),
+    '#default_value' => variable_get('urllogin_codekey', 20110531),
     '#size' => 10,
   );
   $form['encryption']['urllogin_codemin'] = array(
     '#type' => 'textfield',
     '#title' => t('Minimum validation number allowed for valid login'),
     '#description' => t('A value between 0 and 2,000,000,000. Suggestion: use oldest valid date in yyyymmdd format.'),
-    '#default_value' => variable_get('urllogin_codemin', 20101231),
+    '#default_value' => variable_get('urllogin_codemin', 20110531),
     '#size' => 10,
   );
   $form['userlist'] = array(
@@ -171,8 +171,8 @@ function urllogin_test_page($urlstring = 'none') {
   $page = "<ul><li>Initial URL string = [$urlstr]</li>";
   $resultmsg = "";
   $uid = urllogin_decode($urlstr,
-    variable_get('urllogin_codekey', 20101231),
-    variable_get('urllogin_codemin', 19990101),
+    variable_get('urllogin_codekey', 20110531),
+    variable_get('urllogin_codemin', 20110531),
     urllogin_passphrase(), $resultmsg);
   if ($uid > -1) {
     $account = _urllogin_testuid($uid, $resultmsg);
@@ -231,8 +231,8 @@ function urllogin_link_page($urlstring = 'none') {
   $urlstr = check_plain($urlstring); // sanitize
   $resultmsg = "";
   $uid = urllogin_decode($urlstr,
-    variable_get('urllogin_codekey', 20101231),
-    variable_get('urllogin_codemin', 19990101),
+    variable_get('urllogin_codekey', 20110531),
+    variable_get('urllogin_codemin', 20110531),
     urllogin_passphrase(), $resultmsg);
   if ($uid > -1) {
     $account = _urllogin_testuid($uid, $resultmsg);

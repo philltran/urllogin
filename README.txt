@@ -48,8 +48,8 @@ FEATURES
       tested with 15,000).
     o Both users and spam detectors are suspicious of long URL's, so every
       effort has been make to keep the login link as short as possible
-    o For this reason, the embedding login string is only 11 characters long.
-       - e.g. http://example.com/l/zjIR0AeOzef/blog/myarticle
+    o For this reason, the embedding login string is only 12 characters long.
+       - e.g. http://example.com/l/zjIR0AeO_zef/blog/myarticle
     o base64URL encoding has been used to avoid problems
     o The link can take the user directly to any page on the site for which
       they have permission
@@ -58,40 +58,58 @@ FEATURES
 DIFFERENCES FROM OTHER SIMILAR MODULES
 ======================================
 
-The most similar module is easylogin although the similarities are only
-superficial because easylogin has an entirely different use case, as described
-below.
+The most similar modules are Easy Login and Token Authentication although the
+similarities are only superficial because they both have entirely different use
+cases, as described below.
 
  _____________________________________________________________________________
-|            |URLLOGIN                       |EASYLOGIN                       |
-|____________|_______________________________|________________________________|
-|            |                               |allowing a small number of      |
-|Use case    |mass emailing                  |individual users to manage their|
-|            |                               |access using a URL string       |
-|____________|_______________________________|________________________________|
-|            |                               |All users have an extra         |
-|Architecture|All encryption/decryption done |"password" added to the         |
-|            |on the fly                     |database. User can log in by    |
-|            |                               |putting this "password" in a URL|
-|____________|_______________________________|________________________________|
-|            | * Highly secure               |                                |
-|            | * Large number of users can be|                                |
-|Architecture|   managed easily              |Detailed individual-level       |
-|strengths   | * No database tables need to  |control possible                |
-|            |   be created/maintained       |                                |
-|            | * mass download of access     |                                |
-|            |   strings to csv file         |                                |
-|____________|_______________________________|________________________________|
-|            |                               | * Security: access strings are |
-|            |                               |   stored unencrypted in the    |
-|            |                               |   database                     |
-|Architecture| * No individual control       | * No way of making access      |
-|weaknesses  |   (except by permission)      |   strings have an expiry date  |
-|            | * no way of re-setting an     | * methodology does not scale to|
-|            |   individual access string    |   a large number of users      |
-|            |                               | * no mass download of access   |
-|            |                               |   strings possible             |
-|____________|_______________________________|________________________________|
+|            |URL LOGIN           |EASY LOGIN           |TOKEN AUTHENTICATION |
+|____________|____________________|_____________________|_____________________|
+|            |                    |allowing a small     |                     |
+|            |                    |number of individual |providing access to  |
+|Use case    |mass emailing       |users to manage their|RSS feeds            |
+|            |                    |access using a URL   |                     |
+|            |                    |string               |                     |
+|____________|____________________|_____________________|_____________________|
+|            |                    |All users have an    |                     |
+|            |                    |extra "password"     |                     |
+|            |All encryption/     |added to the         |                     |
+|Architecture|decryption done on  |database. User can   |Same as Easy Login   |
+|            |the fly             |log in by putting    |                     |
+|            |                    |this "password" in a |                     |
+|            |                    |URL                  |                     |
+|____________|____________________|_____________________|_____________________|
+|            | * Highly secure    |                     |                     |
+|            | * Large number of  |                     |                     |
+|            |   users can be     |                     |                     |
+|            |   managed easily   |                     |Optimized for RSS    |
+|Architecture| * No database      |Detailed individual- |feeds or a restricted|
+|strengths   |   tables need to be|level control        |set of pages (See    |
+|            |   created/         |possible             |link below)          |
+|            |   maintained       |                     |                     |
+|            | * mass download of |                     |                     |
+|            |   access strings to|                     |                     |
+|            |   csv file         |                     |                     |
+|____________|____________________|_____________________|_____________________|
+|            |                    | * Security: access  |                     |
+|            |                    |   strings are stored|                     |
+|            |                    |   unencrypted in the|                     |
+|            |                    |   database          |                     |
+|            | * No individual    | * No way of making  |                     |
+|            |   control (except  |   access strings    |                     |
+|Architecture|   by permission)   |   have an expiry    |Logs in and out on   |
+|weaknesses  | * no way of re-    |   date              |every page access.   |
+|            |   setting an       | * methodology does  |(See link below)     |
+|            |   individual access|   not scale to a    |                     |
+|            |   string           |   large number of   |                     |
+|            |                    |   users             |                     |
+|            |                    | * no mass download  |                     |
+|            |                    |   of access strings |                     |
+|            |                    |   possible          |                     |
+|____________|____________________|_____________________|_____________________|
+For a more detailed evaluation of Token Authentication see the issue queue on
+the subject ( http://drupal.org/node/1110002#comment-4287076 ).
+
 Another similar module is One-time login links which is a very minimal utility
 module that simply re-creates the link that a user would get had they forgotten
 their password and needed to re-create it.
@@ -107,6 +125,29 @@ their password and needed to re-create it.
    to the site. Drupal's one-time link mechanism that this module utilizes will
    not allow this behaviour.
 
+WHICH MODULE TO USE?
+ * If one or more of the following is true, use Token Authentication:
+   a. For accessing RSS feeds.
+   b. There are only a few specific pages or kinds of nodes that the user needs
+      to see, and all menus and links that would take them to other parts of
+      the site are hidden.
+ * If one or more of the following is true, use URL Login
+   a. The user should have the same experience as if they were logged in
+      normally, and can explore the site fully.
+   b. The user may enter data on the site.
+   c. The links come from email and it is required to track *which* email
+      message the user clicked on.
+ * Security considerations
+   a. If the site contains highly sensitive material or e-commerce, then
+      probably neither module should be used, but a careful use of Token
+      Authentication for a limited part of the site might be possible
+   b. The main security risk is email being intercepted or old email being
+      carelessly backed up or broken into. The main way to reduce this risk is
+      to have an expiry date on the authentication data. This is much easier to
+      achieve in URL Login.
+   c. If the Drupal site were compromised, Token Authentication and Easy Login
+      keep unencrypted passwords in the database.
+
 CONFIGURATION
 =============
 
@@ -116,7 +157,7 @@ CONFIGURATION
    this module
 3. Generate login strings (can be downloaded as a CSV file). Login strings are
    in the form:
-    o http://example.com/l/11CHARSTRNG/my_blog_page where the '/l/' and the 11
+    o http://example.com/l/12CHARSTRING/my_blog_page where the '/l/' and the 12
       character access string have been inserted into the URL.
 4. Before sending the URL to real people, it can be tested by using
    '/l_test/' instead of '/l/' in the URL.

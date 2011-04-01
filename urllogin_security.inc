@@ -39,18 +39,22 @@ function _urllogin_inthash($i) {
  * @param $j
  *   Second Integer, passed by reference
  *
+ * @param $x
+ *   Extra byte, passed by reference
+ *
  * @param $passkey
  *   String containing encryption key phrase
  *
  * Nothin is returned.
  */
-function urllogin_encrypt(&$i, &$j, $passkey) {
+function urllogin_encrypt(&$i, &$j, &$x, $passkey) {
   $k = hash('sha256', $passkey, TRUE); // sha256 produces 32 bytes, so could do 16 interations
   for ($iter = 0; $iter < 8; $iter++) {
     $tmp = $i;
     $i = $j ^ _urllogin_inthash($i) ^ ((ord($k[$iter * 2]) << 8) | ord($k[$iter * 2 + 1]));
     $j = $tmp;
   }
+  $x = ($i ^ $j ^ ord($k[16])) & 0xFF; // extra byte for added security
 }
 
 /**
@@ -66,26 +70,32 @@ function urllogin_encrypt(&$i, &$j, $passkey) {
  * @param $i
  *   Second Integer, passed by reference
  *
+ * @param $x
+ *   Extra byte, passed by reference
+ *
  * @param $passkey
  *   String containing encryption key phrase
  *
- * Nothin is returned.
+ * @return
+ *   TRUE if successful, FALSE if extra byte fails
+ *   Note that a TRUE return does not mean security checks are past.
+ *   This is just an added level of security to help with diagnostics.
  */
-function urllogin_decrypt(&$j, &$i, $passkey) {
+function urllogin_decrypt(&$j, &$i, &$x, $passkey) {
   $k = hash('sha256', $passkey, TRUE); // sha256 produces 32 bytes, so could do 16 interations
+  if ($x != (($i ^ $j ^ ord($k[16])) & 0xFF)) return FALSE; // extra byte for added security
   for ($iter = 0; $iter < 8; $iter++) {
     $tmp = $i;
     $i = $j ^ _urllogin_inthash($i) ^ ((ord($k[14 - $iter * 2]) << 8) | ord($k[14 - $iter * 2 + 1]));
     $j = $tmp;
   }
+  return TRUE;
 }
 
 /**
- * Converts a pair of integers into a base64url encoded string
+ * Converts a pair of integers plus an extra byte into a base64url encoded string
  *
  * If integer is greater than a 32 bit value, only the lower 32 bits are used.
- * The values of $i and $j are swapped.
- * The key is applied in the reverse order to encryption.
  *
  * @param $i
  *   First Integer
@@ -93,23 +103,25 @@ function urllogin_decrypt(&$j, &$i, $passkey) {
  * @param $j
  *   Second Integer
  *
+ * @param $x
+ *   Extra byte
+ *
  * @return
  *   Return base64url encoded string which will be 11 characters long
  *   since the '=' is stripped off the end.
  */
-function urllogin_base64enc($i, $j) {
-  return substr(  // do not use drupal_substr because this is a binary string, not UTF
-    strtr(
-      base64_encode(
-        chr(($i >> 24) & 0xff) . chr(($i >> 16) & 0xff) . chr(($i >> 8) & 0xff) . chr($i & 0xff) .
-        chr(($j >> 24) & 0xff) . chr(($j >> 16) & 0xff) . chr(($j >> 8) & 0xff) . chr($j & 0xff)
-      ),
-    '+/=', '-_,'), // modify to use base64url encoding
-  0, 11); // strip '=' off the end
+function urllogin_base64enc($i, $j, $x) {
+  return strtr(
+    base64_encode(
+      chr(($i >> 24) & 0xff) . chr(($i >> 16) & 0xff) . chr(($i >> 8) & 0xff) . chr($i & 0xff) .
+      chr(($j >> 24) & 0xff) . chr(($j >> 16) & 0xff) . chr(($j >> 8) & 0xff) . chr($j & 0xff) .
+      chr($x & 0xff)
+    ),
+  '+/=', '-_,'); // modify to use base64url encoding
 }
 
 /**
- * Converts a base64url encoded string into a pair of integers.
+ * Converts a base64url encoded string into a pair of integers plus an extra byte
  *
  * @param $i
  *   First Integer, passed by reference
@@ -117,28 +129,32 @@ function urllogin_base64enc($i, $j) {
  * @param $j
  *   Second Integer, passed by reference
  *
+ * @param $x
+ *   Extra byte, passed by reference
+ *
  * @param $urlstr
  *   base64 encoded string with the '=' stripped off the end
  *
  * @return
  *   Return TRUE if successful, FALSE if $urlstr was invalid base64url
  */
-function urllogin_base64dec(&$i, &$j, $urlstr) {
-  if ( strlen($urlstr) != 11) {  // do not use drupal_strlen because this is a binary string, not UTF
-    return FALSE; // URL too short
+function urllogin_base64dec(&$i, &$j, &$x, $urlstr) {
+  if ( strlen($urlstr) != 12) {  // do not use drupal_strlen because this is a binary string, not UTF
+    return FALSE; // URL wrong length
   }
-  // modify to use base64url decoding and add = on the end before decoding
+  // modify to use base64url decoding and decode
   if (version_compare(PHP_VERSION, '5.2.0', '>=')) {
-    $s = base64_decode(strtr($urlstr, '-_,', '+/=') . '=', TRUE);
+    $s = base64_decode(strtr($urlstr, '-_,', '+/='), TRUE);
   }
   else {
-    $s = base64_decode(strtr($urlstr, '-_,', '+/=') . '='); // before PHP 5.2, no STRICT parameter
+    $s = base64_decode(strtr($urlstr, '-_,', '+/=')); // before PHP 5.2, no STRICT parameter
   }
   if ($s == FALSE) {
     return FALSE;
   }
   $i = (ord($s[0]) << 24) | (ord($s[1]) << 16) | (ord($s[2]) << 8) | ord($s[3]);
   $j = (ord($s[4]) << 24) | (ord($s[5]) << 16) | (ord($s[6]) << 8) | ord($s[7]);
+  $x = ord($s[8]);
   return TRUE;
 }
 
@@ -159,9 +175,9 @@ function urllogin_base64dec(&$i, &$j, $urlstr) {
  */
 function urllogin_encode($uid, $codekey, $passkey) {
   // first encrypt the two values
-  urllogin_encrypt($uid, $codekey, $passkey);
+  urllogin_encrypt($uid, $codekey, $x, $passkey);
   // then encode them into a string suitable for embedding into a URL
-  return urllogin_base64enc($uid, $codekey);
+  return urllogin_base64enc($uid, $codekey, $x);
 }
 
 /**
@@ -186,11 +202,14 @@ function urllogin_encode($uid, $codekey, $passkey) {
  *   Return UID if successful, -1 if fail, -2 if link expired
  */
 function urllogin_decode($urlstr, $codekey, $codemin, $passkey, &$errormsg) {
-  if ( !urllogin_base64dec($i, $j, $urlstr) ) {
+  if ( !urllogin_base64dec($i, $j, $x, $urlstr) ) {
     $errormsg = 'Invalid Base64 URL string';
     return -1;
   }
-  urllogin_decrypt($i, $j, $passkey);
+  if (!urllogin_decrypt($i, $j, $x, $passkey)) {
+    $errormsg = "Invalid access string";
+    return -1;
+  }
   if (($j < $codemin) or ($j > $codekey)) {
     $errormsg = "code: $j outside permitted range: $codemin to $codekey";
     return -2;

@@ -4,6 +4,8 @@
  * Allows login using link from URL.
  *
  * @todo test if already logged in as someone else and abort
+ * @todo expand access string from 11 to 12 characters using SHA256 checksum
+ * @todo only allow profile module to be used if enabled with correct fields
  * @todo reduce duplication of test code
  * @todo generate token for simplemail-tokens
  */

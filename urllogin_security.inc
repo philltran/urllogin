@@ -128,7 +128,12 @@ function urllogin_base64dec(&$i, &$j, $urlstr) {
     return FALSE; // URL too short
   }
   // modify to use base64url decoding and add = on the end before decoding
-  $s = base64_decode(strtr($urlstr, '-_,', '+/=') . '=', TRUE);
+  if (version_compare(PHP_VERSION, '5.2.0', '>=')) {
+    $s = base64_decode(strtr($urlstr, '-_,', '+/=') . '=', TRUE);
+  }
+  else {
+    $s = base64_decode(strtr($urlstr, '-_,', '+/=') . '='); // before PHP 5.2, no STRICT parameter
+  }
   if ($s == FALSE) {
     return FALSE;
   }

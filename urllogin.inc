@@ -16,8 +16,8 @@ function urllogin_admin_settings() {
     '#description' => '<p>' . t('This page contains all the settings for urllogin.
       However you will also need to add the "login via url" permission to the roles of all users who will
       use this module for logging in.') . '</p><p>'
-      . t('For testing purposes, individual url login strings can be generated from ')
-      . l('the status page - see this page for details.', 'urllogin/status') . '</p>',
+      . t('For testing purposes, individual url login strings can be generated from') . ' '
+      . l(t('the status page - see this page for details.', 'urllogin/status')) . '</p>',
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
@@ -54,7 +54,7 @@ function urllogin_admin_settings() {
     '#type' => 'fieldset',
     '#title' => t('Bulk generation of access URLs'),
     '#description' => '<p>' . t('A bulk download of all user logon strings as a tab-separated csv file can be downloaded
-      by right-clicking and saving ') . l('this link', 'urllogin/userlist.csv') . '.</p><p>'
+      by right-clicking and saving ') . l(t('this link'), 'urllogin/userlist.csv') . '.</p><p>'
       . t('But first set the following options (if required) and <strong><em>save the form</em></strong>.') . '</p>',
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
@@ -109,19 +109,20 @@ function urllogin_status_page($testuid = 0) {
   $codekey = variable_get('urllogin_codekey', 0);
   $codemin = variable_get('urllogin_codemin', 0);
   $page = '<h2> ' . urllogin_help('admin/help#checkin', 0) . '</h2><ul>';
-  $page .= '<li>' . t('Test UID: ') . $uid . '</li>';
-  $page .= '<li>' . t('Passphrase: ') . $passkey . '</li>';
-  $page .= '<li>' . t('Current Validation number: ') . $codekey . '</li>';
-  $page .= '<li>' . t('Minimum validation number: ') . $codemin . '</li>';
+  $page .= '<li>' . t('Test UID') . ': ' . $uid . '</li>';
+  $page .= '<li>' . t('Passphrase') . ': ' . $passkey . '</li>';
+  $page .= '<li>' . t('Current Validation number') . ': ' . $codekey . '</li>';
+  $page .= '<li>' . t('Minimum validation number') . ': ' . $codemin . '</li>';
   $urlstr = urllogin_encode($uid, $codekey, urllogin_passphrase());
   $page .= '<li>' . t('Encoded URL access string: [') . $urlstr . ']</li>';
   $page .= '</ul>';
+  $testlink = 'l_test/' . $urlstr;
   $page .= '<p>' . t('This page can be used to generate individual access strings for testing purposes.
     Simply add the UID of the user to the end of the url for this page, revisit the page and the
     access string will be displayed above.') . '</p><p>'
-   . t('To test the access string, use ') . l('the test page', 'l_test/')
-   . t(' by appending the access string to it, e.g.: ')
-   . l('l_test/' . $urlstr, 'l_test/' . $urlstr) . '</p>';
+   . t('To test the access string, use') . ' ' . l(t('the test page'), 'l_test/') . ' '
+   . t('by appending the access string to it, e.g.:') . ' '
+   . l($testlink, $testlink) . '</p>';
   return $page;
 }
 

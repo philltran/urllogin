@@ -52,7 +52,7 @@ function urllogin_help($path, $arg) {
 }
 
 /**
- * Implementation of hook_perm().
+ * Implements hook_perm().
  */
 function urllogin_perm() {
   return array(
@@ -64,7 +64,7 @@ function urllogin_perm() {
 }
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function urllogin_menu() {
   $items = array();

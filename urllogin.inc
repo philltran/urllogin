@@ -17,7 +17,7 @@ function urllogin_admin_settings() {
       However you will also need to add the "login via url" permission to the roles of all users who will
       use this module for logging in.') . '</p><p>'
       . t('For testing purposes, individual url login strings can be generated from') . ' '
-      . l(t('the status page - see this page for details.', 'urllogin/status')) . '</p>',
+      . l(t('the status page - see this page for details.'), 'urllogin/status') . '</p>',
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );

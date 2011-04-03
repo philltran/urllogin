@@ -325,7 +325,7 @@ function urllogin_userlist_page() {
             ORDER BY name";
     $result = db_query($sql);
     print t('UID') . "\t" . t('Name') . "\t" . t('Email') . "\t" . t('URL') . "\r\n";
-    while ( $data = db_fetch_object($result) ) {
+    while ($data = db_fetch_object($result)) {
       $urlstr = $thissite . urllogin_encode($data->uid, $codekey, $passphrase) . $destination;
       print $data->uid . "\t" . $data->name . "\t" . $data->mail . "\t" . $urlstr . "\r\n";
     }
@@ -346,7 +346,7 @@ function urllogin_userlist_page() {
     $result = db_query($sql);
     print t('UID') . "\t" . t('Name') . "\t" . t('First') . "\t" . t('Last')
           . "\t" . t('Email') . "\t" . t('URL') . "\r\n";
-    while ( $data = db_fetch_object($result) ) {
+    while ($data = db_fetch_object($result)) {
       $urlstr = $thissite . urllogin_encode($data->uid, $codekey, $passphrase) . $destination;
       print $data->uid . "\t" . $data->name . "\t" . $data->first . "\t" . $data->last
           . "\t" . $data->mail . "\t" . $urlstr . "\r\n";

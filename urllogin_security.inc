@@ -202,7 +202,7 @@ function urllogin_encode($uid, $codekey, $passkey) {
  *   Return UID if successful, -1 if fail, -2 if link expired
  */
 function urllogin_decode($urlstr, $codekey, $codemin, $passkey, &$errormsg) {
-  if ( !urllogin_base64dec($i, $j, $x, $urlstr) ) {
+  if (!urllogin_base64dec($i, $j, $x, $urlstr)) {
     $errormsg = 'Invalid Base64 URL string';
     return -1;
   }

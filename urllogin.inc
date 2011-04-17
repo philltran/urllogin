@@ -33,9 +33,15 @@ function urllogin_admin_settings() {
     '#title' => t('Append database access string to passphrase'),
     '#description' => t('Increase security by appending the database access string to the passphrase.
        The only disadvantage is that changing your database password will invalidate all currently
-       issued URL access strings.'),
+       issued URL access strings. The best solution is to set the password in settings.php.'),
     '#default_value' => variable_get('urllogin_add_dbpass', 0),
   );
+  if (isset($GLOBALS['urllogin_passphrase'])) { // disable if passphrase set in settings.php
+    $form['encryption']['urllogin_add_dbpass']['#disabled'] = TRUE;
+    $form['encryption']['urllogin_passphrase']['#disabled'] = TRUE;
+    $form['encryption']['urllogin_passphrase']['#title'] = 'Passphrase (not currently used)';
+    $form['encryption']['urllogin_passphrase']['#description'] = 'Passphrase has been set in settings.php and overrides this value';
+  }
   $form['encryption']['urllogin_codekey'] = array(
     '#type' => 'textfield',
     '#title' => t('Validation number for generating new URL login strings'),
@@ -101,10 +107,15 @@ function urllogin_admin_settings_validate($form, $form_state) {
  */
 function urllogin_status_page($testuid = 0) {
   $uid = (int)$testuid; //this will sanitize it as well
-  $passkey = variable_get('urllogin_passphrase', 'no passphrase defined');
-  if (variable_get('urllogin_add_dbpass', '0') != 0) {
-    // we don't really want to give away the actual database access string
-    $passkey .= ' + database string';
+  if (isset($GLOBALS['urllogin_passphrase'])) { // first see if it is in settings.php
+    $passkey = 'set from settings.php';
+  }
+  else {
+    $passkey = variable_get('urllogin_passphrase', 'no passphrase defined');
+    if (variable_get('urllogin_add_dbpass', '0') != 0) {
+      // we don't really want to give away the actual database access string
+      $passkey .= ' + database string';
+    }
   }
   $codekey = variable_get('urllogin_codekey', 0);
   $codemin = variable_get('urllogin_codemin', 0);

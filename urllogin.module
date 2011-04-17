@@ -13,17 +13,24 @@
 /**
  * Returns the current passphrase.
  *
- * If urllogin_add_dbpass is set, then append the database access string
+ * If the variable $GLOBALS['urllogin_passphrase'] has been set in settings.php
+ * then use it as the passphrase.
+ * Otherwise use the string set in the admin interface and if urllogin_add_dbpass
+ * is set, then append the database access string.
  *
  * @return
  *   full passphrase for encryption
- *
  */
 function urllogin_passphrase() {
-  $passphrase = variable_get('urllogin_passphrase', 'passphrase');
-  if (variable_get('urllogin_add_dbpass', '0') != 0) {
-    global $db_url;
-    $passphrase .= $db_url;
+  if (isset($GLOBALS['urllogin_passphrase'])) { // first see if it is in settings.php
+    $passphrase = $GLOBALS['urllogin_passphrase'];
+  }
+  else {
+    $passphrase = variable_get('urllogin_passphrase', 'passphrase');
+    if (variable_get('urllogin_add_dbpass', '0') != 0) {
+      global $db_url;
+      $passphrase .= $db_url;
+    }
   }
   return $passphrase;
 }

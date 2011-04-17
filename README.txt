@@ -153,6 +153,14 @@ CONFIGURATION
 
 1. Set a passphrase and validation numbers on the urllogin administration page
    (/admin/settings/urllogin)
+   An alternative (and more secure) solution is to add the following line in
+   settings.php:
+
+   $GLOBALS['urllogin_passphrase'] = 'Change this to your own passphrase';
+
+   This will override the administration page entry and is more secure since it
+   is not stored in the database.
+
 2. Give the "login via URL" permission to users who are allowed to log in with
    this module
 3. Generate login strings (can be downloaded as a CSV file). Login strings are

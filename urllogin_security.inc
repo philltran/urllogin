@@ -139,7 +139,7 @@ function urllogin_base64enc($i, $j, $x) {
  *   Return TRUE if successful, FALSE if $urlstr was invalid base64url
  */
 function urllogin_base64dec(&$i, &$j, &$x, $urlstr) {
-  if ( strlen($urlstr) != 12) {  // do not use drupal_strlen because this is a binary string, not UTF
+  if (strlen($urlstr) != 12) {  // do not use drupal_strlen because this is a binary string, not UTF
     return FALSE; // URL wrong length
   }
   // modify to use base64url decoding and decode

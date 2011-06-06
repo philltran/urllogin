@@ -322,18 +322,31 @@ function urllogin_userlist_page() {
   $thissite = url('l/', array('absolute' => TRUE));
   $destination = '/' . variable_get('urllogin_destination', '');
 
-  // tell browser this is not a web page but a file to download
+  // Tell browser this is not a web page but a file to download.
   drupal_set_header('Content-Type: text/csv; charset=utf-8');
   drupal_set_header('Content-Disposition: inline; filename="userlist.csv"');
 
-  // use a different SQL query depending on whether we are to get firstname from the profile
+  // Find out if all authenticated users have the permission and
+  // use a different SQL query depending on result.
+  $sql = "SELECT pid FROM {permission} AS p WHERE rid = 2 AND (p.perm LIKE '%login via url%')";
+  if (db_result(db_query($sql)) == "") {
+    $join_user_role = "JOIN {users_roles} AS r ON r.uid = u.uid
+                       JOIN {permission} AS p ON p.rid = r.rid ";
+    $role_has_permission = "AND p.perm LIKE '%login via url%' ";
+  }
+  else {
+    $join_user_role = "";
+    $role_has_permission = "";
+  }
+
+  // use a different SQL query depending on whether we are to get firstname and lastname from the profile
   if (variable_get('urllogin_useprofile', 0) == 0) {
-    $sql="SELECT u.uid, u.mail, u.name
-            FROM {users} AS u
-            JOIN {users_roles} AS r ON r.uid = u.uid
-            JOIN {permission} AS p ON p.rid = r.rid
-            WHERE p.perm = 'login via url'
-            ORDER BY name";
+   $sql = "SELECT u.uid, u.mail, u.name
+            FROM {users} AS u "
+            . $join_user_role .
+           "WHERE u.uid > 1 "
+            . $role_has_permission .
+           "ORDER BY name";
     $result = db_query($sql);
     print t('UID') . "\t" . t('Name') . "\t" . t('Email') . "\t" . t('URL') . "\r\n";
     while ($data = db_fetch_object($result)) {
@@ -342,18 +355,18 @@ function urllogin_userlist_page() {
     }
   }
   else {
-    $sql="SELECT u.uid, u.mail, u.name, vf.value AS first, vl.value AS last
-            FROM {users} AS u
-            JOIN {users_roles} AS r ON r.uid = u.uid
-            JOIN {permission} AS p ON p.rid = r.rid
-            JOIN {profile_values} AS vf ON vf.uid = u.uid
+    $sql = "SELECT u.uid, u.mail, u.name, vf.value AS first, vl.value AS last
+            FROM {users} AS u "
+            . $join_user_role .
+           "JOIN {profile_values} AS vf ON vf.uid = u.uid
             JOIN {profile_fields} AS f ON f.fid = vf.fid
             JOIN {profile_values} AS vl ON vl.uid = u.uid
             JOIN {profile_fields} AS l ON l.fid = vl.fid
-          WHERE p.perm = 'login via url'
+          WHERE u.uid > 1
             AND f.name = 'profile_firstname'
-            AND l.name = 'profile_lastname'
-          ORDER BY last, first";
+            AND l.name = 'profile_lastname' "
+            . $role_has_permission .
+           "ORDER BY last, first";
     $result = db_query($sql);
     print t('UID') . "\t" . t('Name') . "\t" . t('First') . "\t" . t('Last')
           . "\t" . t('Email') . "\t" . t('URL') . "\r\n";

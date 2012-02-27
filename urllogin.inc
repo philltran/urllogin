@@ -73,7 +73,7 @@ function urllogin_admin_settings() {
     '#size' => 50,
   );
   $form['userlist']['urllogin_useprofile'] = array(
-    '#type' => 'checkbox',
+    '#type' => 'hidden', /* marked hidden until profiles are supported properly in D7 (see end of file) */
     '#title' => t('use "firstname" and "lastname" fields from profile when creating downloaded user list'),
     '#description' => t('Requires the profile module and the creation of fields with the exact names:
        <em>profile_firstname, profile_lastname</em>.'),
@@ -276,7 +276,8 @@ function urllogin_link_page($urlstring = 'none') {
       watchdog('urllogin', $resultmsg, array(), WATCHDOG_NOTICE);
     }
     else {
-      $logged_in = user_external_login($account);
+      $form_state['uid'] = $account->uid;
+			$logged_in = user_login_submit(array(), $form_state);
       if ($logged_in) {
       $resultmsg = t('Logging in as %username (%uid). Redirected to: %goto',
         array('%username' => $account->name, '%uid' => $uid, '%goto' => $goto));
@@ -323,16 +324,16 @@ function urllogin_userlist_page() {
   $destination = '/' . variable_get('urllogin_destination', '');
 
   // Tell browser this is not a web page but a file to download.
-  drupal_set_header('Content-Type: text/csv; charset=utf-8');
-  drupal_set_header('Content-Disposition: inline; filename="userlist.csv"');
+  drupal_add_http_header('Content-Type', 'text/csv; charset=utf-8');
+	drupal_add_http_header('Content-Disposition', 'inline; filename="userlist.csv"');
 
   // Find out if all authenticated users have the permission and
   // use a different SQL query depending on result.
-  $sql = "SELECT pid FROM {permission} AS p WHERE rid = 2 AND (p.perm LIKE '%login via url%')";
-  if (db_result(db_query($sql)) == "") {
+  $sql = "SELECT permission FROM {role_permission} AS p WHERE rid = 2 AND (p.permission LIKE '%login via url%')";
+		if (db_query($sql)->fetchField() == "") {
     $join_user_role = "JOIN {users_roles} AS r ON r.uid = u.uid
-                       JOIN {permission} AS p ON p.rid = r.rid ";
-    $role_has_permission = "AND p.perm LIKE '%login via url%' ";
+                       JOIN {role_permission} AS p ON p.rid = r.rid ";
+		$role_has_permission = "AND p.permission LIKE '%login via url%' ";
   }
   else {
     $join_user_role = "";
@@ -349,12 +350,13 @@ function urllogin_userlist_page() {
            "ORDER BY name";
     $result = db_query($sql);
     print t('UID') . "\t" . t('Name') . "\t" . t('Email') . "\t" . t('URL') . "\r\n";
-    while ($data = db_fetch_object($result)) {
+    foreach ($result as $data) {
       $urlstr = $thissite . urllogin_encode($data->uid, $codekey, $passphrase) . $destination;
       print $data->uid . "\t" . $data->name . "\t" . $data->mail . "\t" . $urlstr . "\r\n";
     }
   }
   else {
+/* Profiles need to be reworked significantly
     $sql = "SELECT u.uid, u.mail, u.name, vf.value AS first, vl.value AS last
             FROM {users} AS u "
             . $join_user_role .
@@ -375,6 +377,7 @@ function urllogin_userlist_page() {
       print $data->uid . "\t" . $data->name . "\t" . $data->first . "\t" . $data->last
           . "\t" . $data->mail . "\t" . $urlstr . "\r\n";
     }
+*/
   }
 }
 

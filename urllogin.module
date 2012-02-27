@@ -61,12 +61,24 @@ function urllogin_help($path, $arg) {
 /**
  * Implements hook_perm().
  */
-function urllogin_perm() {
+function urllogin_permission() {
   return array(
-    'login via url',
-    'view test pages',
-    'administer URL login',
-    'download user access URLs',
+  'login via url' => array(
+        'title' => t('login via url'), 
+        'description' => t('Perform administration tasks for my module.'),
+      ),
+      'view test pages' => array(
+        'title' => t('view test pages'), 
+        'description' => t('Perform administration tasks for my module.'),
+      ),
+      'administer URL login' => array(
+        'title' => t('administer URL login'), 
+        'description' => t('Perform administration tasks for my module.'),
+      ),
+      'download user access URLs' => array(
+        'title' => t('download user access URLs'), 
+        'description' => t('Perform administration tasks for my module.'),
+      ),
   );
 }
 
@@ -92,7 +104,7 @@ function urllogin_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'urllogin.inc',
   );
-  $items['admin/settings/urllogin'] = array(
+  $items['admin/config/people/urllogin'] = array(
     'title' => 'URL login settings',
     'description' => 'Administer URL login',
     'page callback' => 'drupal_get_form',

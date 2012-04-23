@@ -297,7 +297,7 @@ function urllogin_link_page($urlstring = 'none') {
     }
   }
   watchdog('urllogin', $resultmsg, array(), WATCHDOG_WARNING);
-  if ($uid = -2) {
+  if ($uid == -2) {
     return '<h1>' . t('The link you used to access this page has expired.') . '</h1>' .
     '<p>' . t('If you have created a password, you can log on') . ' ' . l(t('here'), 'user') . '.</p>';
   }

@@ -59,25 +59,28 @@ function urllogin_help($path, $arg) {
 }
 
 /**
- * Implements hook_perm().
+ * Implements hook_permission().
  */
 function urllogin_permission() {
   return array(
   'login via url' => array(
-        'title' => t('login via url'), 
-        'description' => t('Perform administration tasks for my module.'),
+        'title' => t('login via url'),
+        'description' => t('Allow user to log in using this module.'),
       ),
       'view test pages' => array(
-        'title' => t('view test pages'), 
-        'description' => t('Perform administration tasks for my module.'),
+        'title' => t('view test pages'),
+        'description' => t('Generate test login URLs.'),
+        'restrict access' => TRUE,
       ),
       'administer URL login' => array(
-        'title' => t('administer URL login'), 
-        'description' => t('Perform administration tasks for my module.'),
+        'title' => t('administer URL login'),
+        'description' => t('Configure settings for generating login URLs.'),
+        'restrict access' => TRUE,
       ),
       'download user access URLs' => array(
-        'title' => t('download user access URLs'), 
-        'description' => t('Perform administration tasks for my module.'),
+        'title' => t('download user access URLs'),
+        'description' => t('Download bulk user login URLs.'),
+        'restrict access' => TRUE,
       ),
   );
 }

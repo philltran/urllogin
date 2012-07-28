@@ -277,7 +277,7 @@ function urllogin_link_page($urlstring = 'none') {
     }
     else {
       $form_state['uid'] = $account->uid;
-			$logged_in = user_login_submit(array(), $form_state);
+      $logged_in = user_login_submit(array(), $form_state);
       if ($logged_in) {
       $resultmsg = t('Logging in as %username (%uid). Redirected to: %goto',
         array('%username' => $account->name, '%uid' => $uid, '%goto' => $goto));
@@ -325,15 +325,15 @@ function urllogin_userlist_page() {
 
   // Tell browser this is not a web page but a file to download.
   drupal_add_http_header('Content-Type', 'text/csv; charset=utf-8');
-	drupal_add_http_header('Content-Disposition', 'inline; filename="userlist.csv"');
+  drupal_add_http_header('Content-Disposition', 'inline; filename="userlist.csv"');
 
   // Find out if all authenticated users have the permission and
   // use a different SQL query depending on result.
   $sql = "SELECT permission FROM {role_permission} AS p WHERE rid = 2 AND (p.permission LIKE '%login via url%')";
-		if (db_query($sql)->fetchField() == "") {
+  if (db_query($sql)->fetchField() == "") {
     $join_user_role = "JOIN {users_roles} AS r ON r.uid = u.uid
                        JOIN {role_permission} AS p ON p.rid = r.rid ";
-		$role_has_permission = "AND p.permission LIKE '%login via url%' ";
+    $role_has_permission = "AND p.permission LIKE '%login via url%' ";
   }
   else {
     $join_user_role = "";
@@ -342,7 +342,7 @@ function urllogin_userlist_page() {
 
   // use a different SQL query depending on whether we are to get firstname and lastname from the profile
   if (variable_get('urllogin_useprofile', 0) == 0) {
-   $sql = "SELECT u.uid, u.mail, u.name
+  $sql = "SELECT u.uid, u.mail, u.name
             FROM {users} AS u "
             . $join_user_role .
            "WHERE u.uid > 1 "
@@ -377,7 +377,7 @@ function urllogin_userlist_page() {
       print $data->uid . "\t" . $data->name . "\t" . $data->first . "\t" . $data->last
           . "\t" . $data->mail . "\t" . $urlstr . "\r\n";
     }
-*/
+ */
   }
 }
 

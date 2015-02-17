@@ -182,26 +182,32 @@ function urllogin_encode($uid, $codekey, $passkey) {
 
 /**
  * Decodes an encoded url string into a user ID and tests validity.
+ * If the uid matches the current one supplied, then it is valid even if link is expired.
+ * This is so that the user for whom the link is intended does not get an error message
+ * if they are logged in and click on an old link, but instead still get redirected.
  *
- * @param $urlstr
+ * @param string $urlstr
  *   encoded url string
  *
- * @param $codekey
+ * @param int $codekey
  *   Integer containing current active code (maximum allowable value)
  *
- * @param $codemin
+ * @param int $codemin
  *   Integer containing minimum allowable value of code
  *
- * @param $passkey
+ * @param string $passkey
  *   String containing encryption key phrase
  *
- * @param $errormsg
+ * @param string $errormsg
  *   Contains error message if function fails.
  *
- * @return
+ * @param int $currentuid
+ *   Contains optional current uid
+ *
+ * @return int
  *   Return UID if successful, -1 if fail, -2 if link expired
  */
-function urllogin_decode($urlstr, $codekey, $codemin, $passkey, &$errormsg) {
+function urllogin_decode($urlstr, $codekey, $codemin, $passkey, &$errormsg, $currentuid=-1) {
   if (!urllogin_base64dec($i, $j, $x, $urlstr)) {
     $errormsg = 'Invalid Base64 URL string';
     return -1;
@@ -210,7 +216,7 @@ function urllogin_decode($urlstr, $codekey, $codemin, $passkey, &$errormsg) {
     $errormsg = "Invalid access string";
     return -1;
   }
-  if (($j < $codemin) or ($j > $codekey)) {
+  if ((($j < $codemin) or ($j > $codekey)) and ($i != $currentuid)) {
     $errormsg = "code: $j outside permitted range: $codemin to $codekey";
     return -2;
   }

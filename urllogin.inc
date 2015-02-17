@@ -208,21 +208,17 @@ function urllogin_test_page($urlstring = 'none') {
 
     // Check in case this user is already logged in
     global $user;
-    $logged_in = ($user->uid == $uid);
-    if ($logged_in) {
+    if ($user->uid == $uid) { // test if user already logged in
       $resultmsg = t('User %username (%uid) was already logged in. Redirected to: %goto',
         array('%username' => $account->name, '%uid' => $uid, '%goto' => $goto));
     }
     else {
       $resultmsg = t('Logging in as %username (%uid). Redirected to: %goto',
         array('%username' => $account->name, '%uid' => $uid, '%goto' => $goto));
-      $logged_in = TRUE; // assume success
     }
-    if ($logged_in) {
-      // get rid of first two arguments and use the rest of the URL as the destination
-      $page .= "<li>$resultmsg</li><li>goto: $goto</li></ul>";
-      return $page;
-    }
+    // get rid of first two arguments and use the rest of the URL as the destination
+    $page .= "<li>$resultmsg</li><li>goto: $goto</li></ul>";
+    return $page;
   }
   $page .= "<li>$resultmsg</li></ul>";
   return $page;
@@ -238,14 +234,18 @@ function urllogin_test_page($urlstring = 'none') {
  * If good, then the user is logged in and transferred to the destination page.
  * Otherwise they are taken to the front page.
  * Results, good or bad, are logged with watchdog.
+ * If the intended user is already logged in, then redirect will occur even if link is outdated.
  */
 function urllogin_link_page($urlstring = 'none') {
   $urlstr = check_plain($urlstring); // sanitize
   $resultmsg = "";
+  global $user;
   $uid = urllogin_decode($urlstr,
     variable_get('urllogin_codekey', 20110531),
     variable_get('urllogin_codemin', 20110531),
-    urllogin_passphrase(), $resultmsg);
+    urllogin_passphrase(),
+    $resultmsg,
+    $user->uid);
   if ($uid > -1) {
     $account = _urllogin_testuid($uid, $resultmsg);
   }
@@ -268,33 +268,23 @@ function urllogin_link_page($urlstring = 'none') {
     }
 
     // Check in case this user is already logged in
-    global $user;
-    $logged_in = ($user->uid == $account->uid);
-    if ($logged_in) {
+    if ($user->uid == $account->uid) {
       $resultmsg = t('User %username (%uid) was already logged in. Redirected to: %goto',
         array('%username' => $account->name, '%uid' => $uid, '%goto' => $goto));
       watchdog('urllogin', $resultmsg, array(), WATCHDOG_NOTICE);
     }
     else {
       $form_state['uid'] = $account->uid;
-      $logged_in = user_login_submit(array(), $form_state);
-      if ($logged_in) {
+      user_login_submit(array(), $form_state);
       $resultmsg = t('Logging in as %username (%uid). Redirected to: %goto',
-        array('%username' => $account->name, '%uid' => $uid, '%goto' => $goto));
-        watchdog('urllogin', $resultmsg, array(), WATCHDOG_INFO);
-        // if persistent_login is installed, then set "remember me"
-        if (module_exists('persistent_login')) {
-          _persistent_login_create_cookie($account);
-        }
-      }
-      else {
-        $resultmsg = t('Failed login as %username (%uid)',
-          array('%username' => $account->name, '%uid' => $uid));
+      array('%username' => $account->name, '%uid' => $uid, '%goto' => $goto));
+      watchdog('urllogin', $resultmsg, array(), WATCHDOG_INFO);
+      // if persistent_login is installed, then set "remember me"
+      if (module_exists('persistent_login')) {
+        _persistent_login_create_cookie($account);
       }
     }
-    if ($logged_in) {
-      drupal_goto(implode('/', $args), $query);
-    }
+    drupal_goto(implode('/', $args), $query);
   }
   watchdog('urllogin', $resultmsg, array(), WATCHDOG_WARNING);
   if ($uid == -2) {
@@ -342,7 +332,7 @@ function urllogin_userlist_page() {
 
   // use a different SQL query depending on whether we are to get firstname and lastname from the profile
   if (variable_get('urllogin_useprofile', 0) == 0) {
-  $sql = "SELECT u.uid, u.mail, u.name
+    $sql = "SELECT u.uid, u.mail, u.name
             FROM {users} AS u "
             . $join_user_role .
            "WHERE u.uid > 1 "

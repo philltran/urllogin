@@ -245,7 +245,8 @@ function urllogin_link_page($urlstring = 'none') {
     variable_get('urllogin_codemin', 20110531),
     urllogin_passphrase(),
     $resultmsg,
-    $user->uid);
+    $user->uid
+  );
   if ($uid > -1) {
     $account = _urllogin_testuid($uid, $resultmsg);
   }
@@ -268,23 +269,34 @@ function urllogin_link_page($urlstring = 'none') {
     }
 
     // Check in case this user is already logged in
-    if ($user->uid == $account->uid) {
+    $logged_in = ($user->uid == $uid);
+    if ($logged_in) {
       $resultmsg = t('User %username (%uid) was already logged in. Redirected to: %goto',
         array('%username' => $account->name, '%uid' => $uid, '%goto' => $goto));
       watchdog('urllogin', $resultmsg, array(), WATCHDOG_NOTICE);
     }
-    else {
-      $form_state['uid'] = $account->uid;
-      user_login_submit(array(), $form_state);
-      $resultmsg = t('Logging in as %username (%uid). Redirected to: %goto',
-      array('%username' => $account->name, '%uid' => $uid, '%goto' => $goto));
-      watchdog('urllogin', $resultmsg, array(), WATCHDOG_INFO);
-      // if persistent_login is installed, then set "remember me"
-      if (module_exists('persistent_login')) {
-        _persistent_login_create_cookie($account);
+    else { // Log the user in
+      $user = user_load($uid);
+      $form_state['uid'] = $uid;
+      user_login_finalize($form_state); // called by user_login_submit() which does stuff that is not needed
+      $logged_in = ($user->uid == $uid);
+      if ($logged_in) {
+        $resultmsg = t('Logging in as %username (%uid). Redirected to: %goto',
+          array('%username' => $account->name, '%uid' => $uid, '%goto' => $goto));
+        watchdog('urllogin', $resultmsg, array(), WATCHDOG_INFO);
+        // if persistent_login is installed, then set "remember me"
+        if (module_exists('persistent_login')) {
+          _persistent_login_create_cookie($account);
+        }
+      }
+      else {
+        $resultmsg = t('Failed login as %username (%uid)',
+          array('%username' => $account->name, '%uid' => $uid));
       }
     }
-    drupal_goto(implode('/', $args), $query);
+    if ($logged_in) {
+      drupal_goto(implode('/', $args), $query);
+    }
   }
   watchdog('urllogin', $resultmsg, array(), WATCHDOG_WARNING);
   if ($uid == -2) {

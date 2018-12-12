@@ -18,7 +18,7 @@
  * @return
  *   Four byte string of characters, each capable of 256 possible values.
  */
-function _urllogin_inthash($i) {
+function urllogin_inthash($i) {
   $s = hash('sha256', $i & 0x7FFFFFFF, TRUE);
   return (ord($s[0]) << 24) | (ord($s[1]) << 16) | (ord($s[2]) << 8) | ord($s[3]);
 }
@@ -28,10 +28,10 @@ function _urllogin_inthash($i) {
  *
  * The encryption uses a "butterfly" technique similar to the DES's Feistel
  * scheme.
- * See @link http://en.wikipedia.org/wiki/Data_Encryption_Standard for more details of the DES @endlink
- * Instead of the Feistel function, sha256 is used. (This is probably way overkill
- * but it is easy to code.)
- * Another encryption algorithm can be plugged in here if desired.
+ * See @link http://en.wikipedia.org/wiki/Data_Encryption_Standard for more
+ * details of the DES @endlink Instead of the Feistel function, sha256 is used.
+ * (This is probably way overkill but it is easy to code.) Another encryption
+ * algorithm can be plugged in here if desired.
  *
  * @param $i
  *   First Integer, passed by reference
@@ -51,7 +51,7 @@ function urllogin_encrypt(&$i, &$j, &$x, $passkey) {
   $k = hash('sha256', $passkey, TRUE); // sha256 produces 32 bytes, so could do 16 interations
   for ($iter = 0; $iter < 8; $iter++) {
     $tmp = $i;
-    $i = $j ^ _urllogin_inthash($i) ^ ((ord($k[$iter * 2]) << 8) | ord($k[$iter * 2 + 1]));
+    $i = $j ^ urllogin_inthash($i) ^ ((ord($k[$iter * 2]) << 8) | ord($k[$iter * 2 + 1]));
     $j = $tmp;
   }
   $x = ($i ^ $j ^ ord($k[16])) & 0xFF; // extra byte for added security
@@ -83,17 +83,20 @@ function urllogin_encrypt(&$i, &$j, &$x, $passkey) {
  */
 function urllogin_decrypt(&$j, &$i, &$x, $passkey) {
   $k = hash('sha256', $passkey, TRUE); // sha256 produces 32 bytes, so could do 16 interations
-  if ($x != (($i ^ $j ^ ord($k[16])) & 0xFF)) return FALSE; // extra byte for added security
+  if ($x != (($i ^ $j ^ ord($k[16])) & 0xFF)) {
+    return FALSE;
+  } // extra byte for added security
   for ($iter = 0; $iter < 8; $iter++) {
     $tmp = $i;
-    $i = $j ^ _urllogin_inthash($i) ^ ((ord($k[14 - $iter * 2]) << 8) | ord($k[14 - $iter * 2 + 1]));
+    $i = $j ^ urllogin_inthash($i) ^ ((ord($k[14 - $iter * 2]) << 8) | ord($k[14 - $iter * 2 + 1]));
     $j = $tmp;
   }
   return TRUE;
 }
 
 /**
- * Converts a pair of integers plus an extra byte into a base64url encoded string
+ * Converts a pair of integers plus an extra byte into a base64url encoded
+ * string
  *
  * If integer is greater than a 32 bit value, only the lower 32 bits are used.
  *
@@ -117,11 +120,12 @@ function urllogin_base64enc($i, $j, $x) {
       chr(($j >> 24) & 0xff) . chr(($j >> 16) & 0xff) . chr(($j >> 8) & 0xff) . chr($j & 0xff) .
       chr($x & 0xff)
     ),
-  '+/=', '-_,'); // modify to use base64url encoding
+    '+/=', '-_,'); // modify to use base64url encoding
 }
 
 /**
- * Converts a base64url encoded string into a pair of integers plus an extra byte
+ * Converts a base64url encoded string into a pair of integers plus an extra
+ * byte
  *
  * @param $i
  *   First Integer, passed by reference
@@ -142,13 +146,9 @@ function urllogin_base64dec(&$i, &$j, &$x, $urlstr) {
   if (strlen($urlstr) != 12) {  // do not use drupal_strlen because this is a binary string, not UTF
     return FALSE; // URL wrong length
   }
-  // modify to use base64url decoding and decode
-  if (version_compare(PHP_VERSION, '5.2.0', '>=')) {
-    $s = base64_decode(strtr($urlstr, '-_,', '+/='), TRUE);
-  }
-  else {
-    $s = base64_decode(strtr($urlstr, '-_,', '+/=')); // before PHP 5.2, no STRICT parameter
-  }
+  // modify to use base64url decoding and decode  if (version_compare(PHP_VERSION, '5.2.0', '>=')) {
+  $s = base64_decode(strtr($urlstr, '-_,', '+/='), TRUE);
+
   if ($s == FALSE) {
     return FALSE;
   }
@@ -182,9 +182,10 @@ function urllogin_encode($uid, $codekey, $passkey) {
 
 /**
  * Decodes an encoded url string into a user ID and tests validity.
- * If the uid matches the current one supplied, then it is valid even if link is expired.
- * This is so that the user for whom the link is intended does not get an error message
- * if they are logged in and click on an old link, but instead still get redirected.
+ * If the uid matches the current one supplied, then it is valid even if link
+ * is expired. This is so that the user for whom the link is intended does not
+ * get an error message if they are logged in and click on an old link, but
+ * instead still get redirected.
  *
  * @param string $urlstr
  *   encoded url string
@@ -207,7 +208,7 @@ function urllogin_encode($uid, $codekey, $passkey) {
  * @return int
  *   Return UID if successful, -1 if fail, -2 if link expired
  */
-function urllogin_decode($urlstr, $codekey, $codemin, $passkey, &$errormsg, $currentuid=-1) {
+function urllogin_decode($urlstr, $codekey, $codemin, $passkey, &$errormsg, $currentuid = -1) {
   if (!urllogin_base64dec($i, $j, $x, $urlstr)) {
     $errormsg = 'Invalid Base64 URL string';
     return -1;

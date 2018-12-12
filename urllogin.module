@@ -1,6 +1,7 @@
 <?php
 /**
  * @file
+ * * Module file for Urllogin
  * Allows login using link from URL.
  *
  * @todo test if already logged in as someone else and abort
@@ -10,33 +11,37 @@
  * @todo generate token for simplemail-tokens
  */
 
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
+
 /**
  * Returns the current passphrase.
  *
  * If the variable $GLOBALS['urllogin_passphrase'] has been set in settings.php
  * then use it as the passphrase.
- * Otherwise use the string set in the admin interface and if urllogin_add_dbpass
- * is set, then append the database access string.
+ * Otherwise use the string set in the admin interface and if
+ * urllogin_add_dbpass is set, then append the database access string.
  *
  * @return
  *   full passphrase for encryption
  */
 function urllogin_passphrase() {
-  if (isset($GLOBALS['urllogin_passphrase'])) { // first see if it is in settings.php
-    $passphrase = $GLOBALS['urllogin_passphrase'];
+  if (NULL !== (Drupal::config('system.urllogin')
+      ->get('passphrase'))) { // first see if it is in settings.php
+    $passphrase = Drupal::config('system.urllogin')->get('passphrase');
   }
   else {
-    $passphrase = variable_get('urllogin_passphrase', 'passphrase');
-    if (variable_get('urllogin_add_dbpass', '0') != 0) {
-      global $db_url;
-      $passphrase .= $db_url;
+    $passphrase = Drupal::config('urllogin.settings')->get('passphrase');
+    if (\Drupal::config('urllogin.settings')->get('add_dbpass') != 0) {
+      $passphrase .= 'bob'; // Drupal::getConnectionInfoAsUrlglobal;
     }
   }
   return $passphrase;
 }
 
-/********************** Admin Functions **************************/
 /**
+ * Implements hook_help().
  * Display help and module information
  *
  * @param path
@@ -48,92 +53,78 @@ function urllogin_passphrase() {
  * @return
  *   help text for the path
  */
-function urllogin_help($path, $arg) {
-  $output = ''; // declare output variable
-  switch ($path) {
-    case "admin/help#urllogin":
-      $output = '<p>' . t('Allow login using link from URL') . '</p>';
-      break;
+function urllogin_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the urllogin module.
+    case 'help.page.urllogin':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Allow login using link from URL') . '</p>';
+      return $output;
   }
-  return $output;
 }
 
 /**
- * Implements hook_permission().
+ * Tests to see if UID can be logged on.
+ *
+ * @param $uid
+ *   UID to be tested
+ *
+ * @param $resultmsg
+ *   Contains resultmsg message if function fails.
+ *
+ * @return
+ *   If sucessful, loaded account of user
+ *   Else NULL
  */
-function urllogin_permission() {
-  return array(
-  'login via url' => array(
-        'title' => t('login via url'),
-        'description' => t('Allow user to log in using this module.'),
-      ),
-      'view test pages' => array(
-        'title' => t('view test pages'),
-        'description' => t('Generate test login URLs.'),
-        'restrict access' => TRUE,
-      ),
-      'administer URL login' => array(
-        'title' => t('administer URL login'),
-        'description' => t('Configure settings for generating login URLs.'),
-        'restrict access' => TRUE,
-      ),
-      'download user access URLs' => array(
-        'title' => t('download user access URLs'),
-        'description' => t('Download bulk user login URLs.'),
-        'restrict access' => TRUE,
-      ),
-  );
+function urllogin_testuid($uid, &$resultmsg) {
+  if ($uid < 2) {
+    $resultmsg = t('UID is %uid - cannot login as user 0 or 1', ['%uid' => $uid]);
+    return NULL;
+  }
+  $account = \Drupal\user\Entity\User::load($uid);
+  if (!$account) {
+    $resultmsg = t('User %uid does not exist', ['%uid' => $uid]);
+    return NULL;
+  }
+  if (!($account->hasPermission('login via url'))) {
+    $resultmsg = t('User %uid denied access', ['%uid' => $uid]);
+    return NULL;
+  }
+  $resultmsg = t('User %username (%uid) successfully validated',
+    ['%username' => $account->getDisplayName(), '%uid' => $uid]);
+  return $account;
 }
 
 /**
- * Implements hook_menu().
+ * Callback for retrieving URL access details.
+ *
+ * @param $uid
+ *   User ID of user whose URL access details are to be retrieved.
+ *
+ * @return object
+ *   ServicesMenu object
  */
-function urllogin_menu() {
-  $items = array();
-  $items['l'] = array(
-    'title' => 'Link to account',
-    'description' => 'Links a URL to an account',
-    'page callback' => 'urllogin_link_page',
-    'access callback' => TRUE,
-    'type' => MENU_CALLBACK,
-    'file' => 'urllogin.inc',
-  );
-  $items['l_test'] = array(
-    'title' => 'Test URL login',
-    'description' => 'Tests URL but does not log in',
-    'page callback' => 'urllogin_test_page',
-    'access callback' => 'user_access',
-    'access arguments' => array('view test pages'),
-    'type' => MENU_CALLBACK,
-    'file' => 'urllogin.inc',
-  );
-  $items['admin/config/people/urllogin'] = array(
-    'title' => 'URL login settings',
-    'description' => 'Administer URL login',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('urllogin_admin_settings'),
-    'access arguments' => array('administer URL login'),
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'urllogin.inc',
-  );
-  $items['urllogin/status'] = array(
-    'title' => 'URL Login Status',
-    'description' => 'Report URL login status',
-    'page callback' => 'urllogin_status_page',
-    'access callback' => 'user_access',
-    'access arguments' => array('view test pages'),
-    'type' => MENU_CALLBACK,
-    'file' => 'urllogin.inc',
-  );
-  $items['urllogin/userlist.csv'] = array(
-    'title' => "download user access URL's",
-    'description' => "download user access URL's as a file of tab separated variables",
-    'page callback' => 'urllogin_userlist_page',
-    'access callback' => 'user_access',
-    'access arguments' => array('download user access URLs'),
-    'type' => MENU_CALLBACK,
-    'file' => 'urllogin.inc',
-  );
-  return $items;
-}
+function urllogin_retrieve($uid) {
 
+  $user_exists = \Drupal::entityQuery('user')
+    ->condition('uid', $uid, '=')
+    ->execute()
+    ->rowCount();
+
+  if (empty($user_exists)) {
+    return FALSE;
+  }
+
+
+  module_load_include('inc', 'urllogin', 'urllogin_security');
+
+  $codekey = Drupal::config('urlloginisettings')->get('codekey');
+  $passphrase = urllogin_passphrase();
+
+  $result = new stdClass();
+  $result->token = urllogin_encode($uid, $codekey, $passphrase);
+  $result->url = Drupal::fromUri('l/' . $result->token, ['absolute' => TRUE]);
+
+  return $result;
+}

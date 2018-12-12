@@ -9,11 +9,6 @@
  */
 function urllogin_uninstall() {
   // Remove variables.
-  variable_del('urllogin_add_dbpass');
-  variable_del('urllogin_passphrase');
-  variable_del('urllogin_codekey');
-  variable_del('urllogin_codemin');
-  variable_del('urllogin_destination');
-  variable_del('urllogin_useprofile');
+  \Drupal::service('config.factory')->getEditable('urllogin.settings')->delete();
 }
 

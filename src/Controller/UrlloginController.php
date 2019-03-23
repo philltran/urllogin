@@ -153,7 +153,7 @@ class UrlloginController extends ControllerBase {
    */
   public function user_list() {
     module_load_include('inc', 'urllogin', 'urllogin_security');
-    $codekey = \Drupal::config('urllogin.settings')->get('codekey');
+    $codekey = \Drupal::config('urllogin.settings')->get('urllogin.codekey');
     $passphrase = urllogin_passphrase();
     $thissite = \Drupal::request()->getSchemeAndHttpHost();
     $destination = '/' . \Drupal::config('urllogin.settings')

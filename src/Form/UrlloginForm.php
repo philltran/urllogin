@@ -48,7 +48,7 @@ class UrlloginForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Pass phrase'),
       '#description' => $this->t('The passphrase for encoding URL access'),
-      '#default_value' => $config->get('passphrase'),
+      '#default_value' => $config->get('urllogin.passphrase'),
       '#size' => 40,
     ];
 
@@ -59,7 +59,7 @@ class UrlloginForm extends ConfigFormBase {
          '#description' => $this->t('Increase security by appending the database access string to the passphrase.
           The only disadvantage is that changing your database password will invalidate all currently
           issued URL access strings. The best solution is to set the password in settings.php.'),
-         '#default_value' => $config->get('add_dbpass'),
+         '#default_value' => $config->get('urllogin.add_dbpass'),
        );
     */
 
@@ -75,7 +75,7 @@ class UrlloginForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Validation number for generating new URL login strings'),
       '#description' => $this->t('A value between 0 and 2,000,000,000. Suggestion: use current date in yyyymmdd format.'),
-      '#default_value' => $config->get('codekey'),
+      '#default_value' => $config->get('urllogin.codekey'),
       '#size' => 10,
     ];
 
@@ -83,7 +83,7 @@ class UrlloginForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Minimum validation number allowed for valid login'),
       '#description' => $this->t('A value between 0 and 2,000,000,000. Suggestion: use oldest valid date in yyyymmdd format.'),
-      '#default_value' => $config->get('codemin'),
+      '#default_value' => $config->get('urllogin.codemin'),
       '#size' => 10,
     ];
 
@@ -103,7 +103,7 @@ class UrlloginForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Optional destination for bulk generated links'),
       '#description' => $this->t('No leading "/" e.g. blog/my_latest_article'),
-      '#default_value' => $config->get('destination'),
+      '#default_value' => $config->get('urllogin.destination'),
       '#size' => 50,
     ];
 
@@ -114,7 +114,7 @@ class UrlloginForm extends ConfigFormBase {
       '#title' => $this->t('use "firstname" and "lastname" fields from profile when creating downloaded user list'),
       '#description' => $this->t('Requires the profile module and the creation of fields with the exact names:
        <em>profile_firstname, profile_lastname</em>.'),
-      '#default_value' => $config->get('useprofile'),
+      '#default_value' => $config->get('urllogin.useprofile'),
     ];
 
     $form['actions']['#type'] = 'actions';
@@ -147,11 +147,11 @@ class UrlloginForm extends ConfigFormBase {
     // Retrieve the configuration
     $this->configFactory->getEditable('urllogin.settings')
       // Set the submitted configuration settings
-      ->set('passphrase', $form_state->getValue('urllogin_passphrase'))
-      ->set('add_dbpass', $form_state->getValue('urllogin_add_dbpass'))
-      ->set('codekey', $form_state->getValue('urllogin_codekey'))
-      ->set('codemin', $form_state->getValue('urllogin_codemin'))
-      ->set('destination', $form_state->getValue('urllogin_destination'))
+      ->set('urllogin.passphrase', $form_state->getValue('urllogin_passphrase'))
+      ->set('urllogin.add_dbpass', $form_state->getValue('urllogin_add_dbpass'))
+      ->set('urllogin.codekey', $form_state->getValue('urllogin_codekey'))
+      ->set('urllogin.codemin', $form_state->getValue('urllogin_codemin'))
+      ->set('urllogin.destination', $form_state->getValue('urllogin_destination'))
       ->save();
 
 

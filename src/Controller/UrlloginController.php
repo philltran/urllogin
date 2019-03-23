@@ -39,8 +39,8 @@ class UrlloginController extends ControllerBase {
     $resultmsg = "";
     $user = User::load(\Drupal::currentUser()->id());
     $config = $this->config('urllogin.settings');
-    $codekey = $config->get('codekey');
-    $codemin = $config->get('codemin');
+    $codekey = $config->get('urllogin.codekey');
+    $codemin = $config->get('urllogin.codemin');
     $uid = urllogin_decode($urlstr, $codekey, $codemin, urllogin_passphrase(),
       $resultmsg, $user->get('uid')->value
     );
@@ -109,8 +109,8 @@ class UrlloginController extends ControllerBase {
     ];
     // load config
     $config = $this->config('urllogin.settings');
-    $codekey = $config->get('codekey');
-    $codemin = $config->get('codemin');
+    $codekey = $config->get('urllogin.codekey');
+    $codemin = $config->get('urllogin.codemin');
     $uid = (int) $testuid; //this will sanitize it as well
     $passphrase = urllogin_passphrase();
     $page = '<ul>';
@@ -213,8 +213,8 @@ class UrlloginController extends ControllerBase {
     $resultmsg = "";
     $user = User::load(\Drupal::currentUser()->id());
     $config = $this->config('urllogin.settings');
-    $codekey = $config->get('codekey');
-    $codemin = $config->get('codemin');
+    $codekey = $config->get('urllogin.codekey');
+    $codemin = $config->get('urllogin.codemin');
     $uid = urllogin_decode($urlstr, $codekey, $codemin, urllogin_passphrase(),
       $resultmsg, $user->get('uid')->value
     );

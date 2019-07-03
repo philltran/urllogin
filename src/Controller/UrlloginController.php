@@ -157,7 +157,7 @@ class UrlloginController extends ControllerBase {
     $passphrase = urllogin_passphrase();
     $thissite = \Drupal::request()->getSchemeAndHttpHost();
     $destination = '/' . \Drupal::config('urllogin.settings')
-        ->get('destination');
+        ->get('urllogin.destination');
     $output = "UID, Username, Email, Login URL \n";
     $response = new \Symfony\Component\HttpFoundation\Response();
     // Tell browser this is not a web page but a file to download.

@@ -1,7 +1,8 @@
 <?php
+
 /**
  * @file
- * urllogin module install and uninstall hooks
+ * Urllogin module install and uninstall hooks.
  */
 
 /**
@@ -11,4 +12,3 @@ function urllogin_uninstall() {
   // Remove variables.
   \Drupal::service('config.factory')->getEditable('urllogin.settings')->delete();
 }
-

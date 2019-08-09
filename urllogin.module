@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @file
- * * Module file for Urllogin
+ * Module file for Urllogin.
+ *
  * Allows login using link from URL.
  *
  * @todo test if already logged in as someone else and abort
@@ -11,9 +13,8 @@
  * @todo generate token for simplemail-tokens
  */
 
+use Drupal\user\Entity\User;
 use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\Core\Link;
-use Drupal\Core\Url;
 
 /**
  * Returns the current passphrase.
@@ -23,18 +24,20 @@ use Drupal\Core\Url;
  * Otherwise use the string set in the admin interface and if
  * urllogin_add_dbpass is set, then append the database access string.
  *
- * @return
+ * @return string
  *   full passphrase for encryption
  */
 function urllogin_passphrase() {
   if (NULL !== (Drupal::config('system.urllogin')
-      ->get('passphrase'))) { // first see if it is in settings.php
+  // First see if it is in settings.php.
+    ->get('passphrase'))) {
     $passphrase = Drupal::config('system.urllogin')->get('passphrase');
   }
   else {
     $passphrase = Drupal::config('urllogin.settings')->get('passphrase');
     if (\Drupal::config('urllogin.settings')->get('add_dbpass') != 0) {
-      $passphrase .= 'bob'; // Drupal::getConnectionInfoAsUrlglobal;
+      // Drupal::getConnectionInfoAsUrlglobal;.
+      $passphrase .= 'bob';
     }
   }
   return $passphrase;
@@ -42,16 +45,6 @@ function urllogin_passphrase() {
 
 /**
  * Implements hook_help().
- * Display help and module information
- *
- * @param path
- *   which path of the site we're displaying help
- *
- * @param arg
- *   array that holds the current path as would be returned from arg() function
- *
- * @return
- *   help text for the path
  */
 function urllogin_help($route_name, RouteMatchInterface $route_match) {
   switch ($route_name) {
@@ -67,22 +60,20 @@ function urllogin_help($route_name, RouteMatchInterface $route_match) {
 /**
  * Tests to see if UID can be logged on.
  *
- * @param $uid
- *   UID to be tested
- *
- * @param $resultmsg
+ * @param int $uid
+ *   UID to be tested.
+ * @param string $resultmsg
  *   Contains resultmsg message if function fails.
  *
- * @return
- *   If sucessful, loaded account of user
- *   Else NULL
+ * @return object
+ *   If sucessful, loaded account of user Else NULL.
  */
 function urllogin_testuid($uid, &$resultmsg) {
   if ($uid < 2) {
     $resultmsg = t('UID is %uid - cannot login as user 0 or 1', ['%uid' => $uid]);
     return NULL;
   }
-  $account = \Drupal\user\Entity\User::load($uid);
+  $account = User::load($uid);
   if (!$account) {
     $resultmsg = t('User %uid does not exist', ['%uid' => $uid]);
     return NULL;
@@ -99,11 +90,11 @@ function urllogin_testuid($uid, &$resultmsg) {
 /**
  * Callback for retrieving URL access details.
  *
- * @param $uid
+ * @param int $uid
  *   User ID of user whose URL access details are to be retrieved.
  *
  * @return object
- *   ServicesMenu object
+ *   Services Menu object
  */
 function urllogin_retrieve($uid) {
 
@@ -113,9 +104,8 @@ function urllogin_retrieve($uid) {
     ->rowCount();
 
   if (empty($user_exists)) {
-    return FALSE;
+    return NULL;
   }
-
 
   module_load_include('inc', 'urllogin', 'urllogin_security');
 

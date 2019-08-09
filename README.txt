@@ -196,4 +196,3 @@ The urllogin module is sponsored by Corporate Finance Associates
 
 Licensed under the GPL 2.0.
 http://www.gnu.org/licenses/gpl-2.0.txt
-

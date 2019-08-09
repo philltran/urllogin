@@ -11,7 +11,7 @@ urllogin.l_test:
   # Tests URL but does not log in
   path: '/l_test/{urlstring}/{dest}'
   defaults:
-    _controller: '\Drupal\urllogin\Controller\UrlloginController::link_test'
+    _controller: '\Drupal\urllogin\Controller\UrlloginController::linkTest'
     _title: 'Test URL login'
     urlstring: ''
     dest: ''
@@ -31,7 +31,7 @@ urllogin.user_list:
   # Download user access URL's as a file of tab separated variables
   path: '/urllogin/userlist.csv'
   defaults:
-    _controller: '\Drupal\urllogin\Controller\UrlloginController::user_list'
+    _controller: '\Drupal\urllogin\Controller\UrlloginController::userList'
     _title: 'URL Login Status'
   requirements:
     _permission: 'view test pages'

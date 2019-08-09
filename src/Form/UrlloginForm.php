@@ -2,6 +2,8 @@
 
 namespace Drupal\urllogin\Form;
 
+use Drupal\Core\Url;
+use Drupal\Core\Link;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 
@@ -16,7 +18,6 @@ class UrlloginForm extends ConfigFormBase {
   public function getFormId() {
     return 'urllogin_form';
   }
-
 
   /**
    * {@inheritdoc}
@@ -38,8 +39,7 @@ class UrlloginForm extends ConfigFormBase {
       '#description' => $this->t('This page contains all the settings for urllogin.
       However you will also need to add the "login via url" permission to the roles of all users who will
       use this module for logging in.') . '<br />'
-        . t('For testing purposes, individual url login strings can be generated from ')
-        . t('the status page - see this page for details.'),
+      . t('For testing purposes, individual url login strings can be generated from the status page - see this page for details.'),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
     ];
@@ -53,18 +53,22 @@ class UrlloginForm extends ConfigFormBase {
     ];
 
     /*  Disable Add DB Password to passphrase
-        $form['encryption']['urllogin_add_dbpass'] = array(
-         '#type' => 'checkbox',
-         '#title' => $this->t('Append database access string to passphrase'),
-         '#description' => $this->t('Increase security by appending the database access string to the passphrase.
-          The only disadvantage is that changing your database password will invalidate all currently
-          issued URL access strings. The best solution is to set the password in settings.php.'),
-         '#default_value' => $config->get('add_dbpass'),
-       );
-    */
+    $form['encryption']['urllogin_add_dbpass'] = array(
+    '#type' => 'checkbox',
+    '#title' => $this->t('Append database access string to passphrase'),
+    '#description' => $this->t('Increase security by appending the database
+    access string to the passphrase.
+    The only disadvantage is that changing your database password will
+    invalidate all currently
+    issued URL access strings. The best solution is to set the password in
+    settings.php.'),
+    '#default_value' => $config->get('add_dbpass'),
+    );
+     */
 
     // @TODO Check if this is neccasrry with D8 config overried system
-    if (isset($GLOBALS['urllogin_passphrase'])) { // disable if passphrase set in settings.php
+    // disable if passphrase set in settings.php
+    if (isset($GLOBALS['urllogin_passphrase'])) {
       $form['encryption']['urllogin_add_dbpass']['#disabled'] = TRUE;
       $form['encryption']['urllogin_passphrase']['#disabled'] = TRUE;
       $form['encryption']['urllogin_passphrase']['#title'] = 'Passphrase (not currently used)';
@@ -91,10 +95,11 @@ class UrlloginForm extends ConfigFormBase {
       '#type' => 'fieldset',
       '#title' => $this->t('Bulk generation of access URLs'),
       '#description' => $this->t('A bulk download of all user logon strings as a tab-separated csv file can be downloaded
-      by clicking and saving ')
-        . \Drupal\Core\Link::fromTextAndUrl(t('this link. '), \Drupal\Core\Url::fromRoute('urllogin.user_list'))
-          ->toString()
-        . t('But first set the following options (if required) and <strong><em>save the form</em></strong>.'),
+      by clicking and saving @link. But first set the following options (if required) and <strong><em>save the form</em></strong>.',
+        [
+          '@link' => Link::fromTextAndUrl(t('this link.'), Url::fromRoute('urllogin.user_list'))
+            ->toString(),
+        ]),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
     ];
@@ -131,11 +136,13 @@ class UrlloginForm extends ConfigFormBase {
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
     $entry = $form_state->getValue('urllogin_codekey');
-    if (preg_match('@^[0-9]+$@', trim($entry)) != 1) { // test for digits
+    // Test for digits.
+    if (preg_match('@^[0-9]+$@', trim($entry)) != 1) {
       $form_state->setErrorByName('urllogin_codekey', $this->t('Please enter a positive integer for Validation number.'));
     }
     $entry = $form_state->getValue('urllogin_codemin');
-    if (preg_match('@^[0-9]+$@', trim($entry)) != 1) { // test for digits
+    // Test for digits.
+    if (preg_match('@^[0-9]+$@', trim($entry)) != 1) {
       $form_state->setErrorByName('urllogin_codemin', $this->t('Please enter a positive integer for Minimum validation number.'));
     }
   }
@@ -144,9 +151,9 @@ class UrlloginForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // Retrieve the configuration
+    // Retrieve the configuration.
     $this->configFactory->getEditable('urllogin.settings')
-      // Set the submitted configuration settings
+      // Set the submitted configuration settings.
       ->set('passphrase', $form_state->getValue('urllogin_passphrase'))
       ->set('add_dbpass', $form_state->getValue('urllogin_add_dbpass'))
       ->set('codekey', $form_state->getValue('urllogin_codekey'))
@@ -154,7 +161,7 @@ class UrlloginForm extends ConfigFormBase {
       ->set('destination', $form_state->getValue('urllogin_destination'))
       ->save();
 
-
     parent::submitForm($form, $form_state);
   }
+
 }

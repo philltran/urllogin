@@ -36,10 +36,15 @@ class UrlloginForm extends ConfigFormBase {
     $form['encryption'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Encryption settings'),
-      '#description' => $this->t('This page contains all the settings for urllogin.
-      However you will also need to add the "login via url" permission to the roles of all users who will
-      use this module for logging in.') . '<br />'
-      . t('For testing purposes, individual url login strings can be generated from the status page - see this page for details.'),
+      '#description' => $this->t('This page contains all the settings 
+      for urllogin. However you will also need to add the "login via url" 
+      permission to the roles of all users who will use this module for logging 
+      in. <br /> For testing purposes, individual url login strings can be 
+      generated from the status page - @statusPage for details.',
+        [
+          '@statusPage' => Link::fromTextAndUrl(t('see this page'), Url::fromRoute('urllogin.status'))
+            ->toString(),
+        ]),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
     ];

@@ -41,8 +41,8 @@ class UrlloginController extends ControllerBase {
     $resultmsg = "";
     $user = User::load(\Drupal::currentUser()->id());
     $config = $this->config('urllogin.settings');
-    $codekey = $config->get('codekey');
-    $codemin = $config->get('codemin');
+    $codekey = $config->get('urllogin.codekey');
+    $codemin = $config->get('urllogin.codemin');
     $uid = urllogin_decode($urlstr, $codekey, $codemin, urllogin_passphrase(),
       $resultmsg, $user->get('uid')->value
     );
@@ -115,8 +115,8 @@ class UrlloginController extends ControllerBase {
     ];
     // Load config.
     $config = $this->config('urllogin.settings');
-    $codekey = $config->get('codekey');
-    $codemin = $config->get('codemin');
+    $codekey = $config->get('urllogin.codekey');
+    $codemin = $config->get('urllogin.codemin');
     // This will sanitize it as well.
     $uid = (int) $testuid;
     $passphrase = urllogin_passphrase();
@@ -130,15 +130,17 @@ class UrlloginController extends ControllerBase {
     $page .= '<li>' . t('Encoded URL access string: [') . $urlstr . ']</li>';
     $page .= '</ul>';
     $testlink = 'l_test/' . $urlstr;
+    $testlink = Link::fromTextAndUrl($testlink, Url::fromRoute('urllogin.l_test', $route_parameters))
+      ->toString();
+    $testpage = Link::fromTextAndUrl(t('the test page'), Url::fromRoute('urllogin.l_test'))
+      ->toString();
     $page .= t('<p>This page can be used to generate individual access strings for testing purposes.
     Simply add the UID of the user to the end of the url for this page, revisit the page and the
     access string will be displayed above.</p> <p>To test the access string, 
     use @testpage by appending the access string to it, e.g.: @testlink.</p>',
       [
-        '@testpage' => Link::fromTextAndUrl(t('the test page'), Url::fromRoute('urllogin.l_test'))
-          ->toString(),
-        '@testlink' => Link::fromTextAndUrl($testlink, Url::fromRoute('urllogin.l_test', $route_parameters))
-          ->toString(),
+        '@testpage' => $testpage,
+        '@testlink' => $testlink,
       ]);
 
     $element['#markup'] .= $page;
